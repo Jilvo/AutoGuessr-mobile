@@ -13,9 +13,9 @@ class AuthApi {
 
   final Dio _dio;
 
-  static const _loginPath = '/auth/login';
-  static const _registerPath = '/auth/register';
-  static const _mePath = '/auth/me';
+  static const _loginPath = '/users/login';
+  static const _registerPath = '/users/register';
+  static const _mePath = '/users/me';
 
   Future<AuthResponseDto> login({
     required String email,

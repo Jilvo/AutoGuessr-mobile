@@ -9,23 +9,34 @@ import 'package:auto_guessr_mobile/features/auth/presentation/pages/register_pag
 import 'package:auto_guessr_mobile/features/auth/presentation/pages/splash_page.dart';
 import 'package:auto_guessr_mobile/features/home/presentation/pages/home_page.dart';
 
+/// Pages réservées aux utilisateurs connectés. Toutes les autres sont publiques.
+/// 👉 Ajoute ici les futures pages privées (profil, historique...).
+const _protectedRoutes = <String>{};
+
 GoRouter createRouter(AuthCubit authCubit) {
   return GoRouter(
-    initialLocation: Routes.splash,
+    initialLocation: Routes.home,
     // À chaque changement d'AuthState, GoRouter réévalue `redirect`.
     refreshListenable: StreamListenable(authCubit.stream),
     // Garde de navigation centralisée : aucun écran n'a à vérifier lui-même si
     // l'utilisateur est connecté. Renvoyer `null` = "pas de redirection".
     redirect: (context, state) {
       final location = state.matchedLocation;
+      final isProtected = _protectedRoutes.contains(location);
       final onAuthPage =
           location == Routes.login || location == Routes.register;
+      final onSplash = location == Routes.splash;
 
       return switch (authCubit.state) {
-        AuthUnknown() => location == Routes.splash ? null : Routes.splash,
-        AuthUnauthenticated() => onAuthPage ? null : Routes.login,
-        AuthAuthenticated() =>
-          onAuthPage || location == Routes.splash ? Routes.home : null,
+        // Session en cours de vérification : les pages publiques s'affichent
+        // tout de suite, les pages protégées attendent sur le splash.
+        AuthUnknown() => isProtected ? Routes.splash : null,
+        // Pas connecté : on ne bloque que les pages protégées. Le splash est
+        // aussi quitté ici, sinon on y resterait bloqué une fois la
+        // vérification terminée.
+        AuthUnauthenticated() => isProtected || onSplash ? Routes.login : null,
+        // Connecté : login, register et splash n'ont plus de raison d'être.
+        AuthAuthenticated() => onAuthPage || onSplash ? Routes.home : null,
       };
     },
     routes: [

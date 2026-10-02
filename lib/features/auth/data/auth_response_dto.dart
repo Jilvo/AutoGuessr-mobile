@@ -11,8 +11,9 @@ class AuthResponseDto {
         'user': final Map<String, dynamic> user,
       } =>
         AuthResponseDto(accessToken: accessToken, user: UserDto.fromJson(user)),
-      _ =>
-        throw FormatException('Réponse d\'authentification inattendue : $json'),
+      _ => throw FormatException(
+        'Réponse d\'authentification inattendue : $json',
+      ),
     };
   }
 

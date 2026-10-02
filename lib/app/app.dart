@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:auto_guessr_mobile/app/router.dart';
-import 'package:auto_guessr_mobile/app/theme.dart';
+import 'package:auto_guessr_mobile/core/theme/app_theme.dart';
 import 'package:auto_guessr_mobile/features/auth/domain/auth_repository.dart';
 import 'package:auto_guessr_mobile/features/auth/presentation/cubit/auth_cubit.dart';
 
@@ -38,8 +38,7 @@ class _AppState extends State<App> {
         value: widget.authCubit,
         child: MaterialApp.router(
           title: 'Auto Guessr',
-          theme: AppTheme.light,
-          darkTheme: AppTheme.dark,
+          theme: AppTheme.dark,
           routerConfig: _router,
         ),
       ),
