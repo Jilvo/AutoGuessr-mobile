@@ -135,6 +135,7 @@ class _LoginViewState extends State<_LoginView> {
                   linkLabel: 'Créer un compte',
                   onTap: () => AuthScaffold.switchTo(context, AuthTab.register),
                 ),
+                SizedBox(height: AppSpacing.lg),
               ],
             ),
           ),

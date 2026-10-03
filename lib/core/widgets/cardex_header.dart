@@ -52,10 +52,44 @@ class CardexHeader extends StatelessWidget {
                               onPressed: onBack,
                             ),
                     ),
-                    const Expanded(child: Center(child: CardexLogo())),
+                    const Expanded(child: Center(child: CardexLogoExtended())),
                     SizedBox(width: _sideSlot, child: trailing),
                   ],
                 ),
+              ),
+            ),
+          ),
+          const RacingStripes(),
+        ],
+      ),
+    );
+  }
+}
+
+class BackgroundHeader extends StatelessWidget {
+  const BackgroundHeader({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ColoredBox(
+            color: AppColors.red,
+            child: SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.lg,
+                  AppSpacing.md,
+                  AppSpacing.lg,
+                  AppSpacing.lg,
+                ),
+                child: SizedBox(width: double.infinity, child: child),
               ),
             ),
           ),
@@ -75,7 +109,7 @@ class RacingStripes extends StatelessWidget {
     return const Column(
       children: [
         SizedBox(
-          height: 10,
+          height: 8,
           width: double.infinity,
           child: ColoredBox(color: AppColors.cream),
         ),
@@ -85,9 +119,14 @@ class RacingStripes extends StatelessWidget {
           child: ColoredBox(color: AppColors.red),
         ),
         SizedBox(
-          height: 6,
+          height: 8,
           width: double.infinity,
           child: ColoredBox(color: AppColors.cream),
+        ),
+        SizedBox(
+          height: 6,
+          width: double.infinity,
+          child: ColoredBox(color: AppColors.red),
         ),
       ],
     );

@@ -17,15 +17,44 @@ class CardexLogo extends StatelessWidget {
       children: [
         _Lens(size: size * 1.2),
         const SizedBox(width: AppSpacing.sm + 2),
-        Text(
-          'CARDEX',
-          style: Theme.of(context).textTheme.displayLarge?.copyWith(
-            fontSize: size,
-            color: Colors.white,
-            // L'ombre décalée, sans flou, donne l'effet "sticker" du wireframe.
-            shadows: [Shadow(offset: Offset(size * 0.08, size * 0.08))],
-          ),
-        ),
+      ],
+    );
+  }
+}
+
+class CardexLogoText extends StatelessWidget {
+  const CardexLogoText({super.key, this.size = 32});
+
+  /// Hauteur du texte ; l'objectif s'adapte proportionnellement.
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      'CARDEX',
+      style: Theme.of(context).textTheme.displayLarge?.copyWith(
+        fontSize: size,
+        color: Colors.white,
+        // L'ombre décalée, sans flou, donne l'effet "sticker" du wireframe.
+        shadows: [Shadow(offset: Offset(size * 0.08, size * 0.08))],
+      ),
+    );
+  }
+}
+
+class CardexLogoExtended extends StatelessWidget {
+  const CardexLogoExtended({super.key, this.size = 32});
+
+  /// Hauteur du texte ; l'objectif s'adapte proportionnellement.
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        CardexLogo(size: size),
+        CardexLogoText(size: size),
       ],
     );
   }

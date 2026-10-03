@@ -39,6 +39,8 @@ class AuthScaffold extends StatelessWidget {
             // on retourne alors explicitement à l'accueil.
             onBack: () =>
                 context.canPop() ? context.pop() : context.go(Routes.home),
+
+            // onBack: context.canPop() ? () => context.pop() : null,  #TODO supprimer l'autre et mettre celui ci pour enlver la flèche de retour
           ),
           Expanded(
             child: SingleChildScrollView(

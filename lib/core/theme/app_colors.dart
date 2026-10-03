@@ -18,6 +18,7 @@ abstract final class AppColors {
   static const cream = Color(0xFFF1EFE9);
   static const ink = Color(0xFF111111);
   static const inkMuted = Color(0xFF55565B);
+  static const inkYellow = Color(0xFFF2B233);
 
   // Textes sur fond sombre
   static const textPrimary = Color(0xFFF1EFE9);
@@ -33,4 +34,6 @@ abstract final class AppColors {
   static const tagSportive = Color(0xFFC2551A);
   static const tagYoungtimer = Color(0xFF2F5FA8);
   static const tagRallye = Color(0xFF7A5A35);
+  static const tagElectrique = Color(0xFF2E7D3E);
+  static const tagHybride = Color(0xFF2E7D3E);
 }
