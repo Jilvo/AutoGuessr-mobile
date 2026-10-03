@@ -86,56 +86,95 @@ class HomePage extends StatelessWidget {
                           ),
                         ],
                       ),
-                      SizedBox(height: AppSpacing.md),
+                      // Espacement plus grand ici : on change de "bloc".
+                      const SizedBox(height: AppSpacing.lg),
                       PixelLabel(
                         "Salut, ${user?.pseudo ?? 'Inconnu'} !",
                         color: AppColors.textPrimary,
+                        size: 15,
                       ),
-                      SizedBox(height: AppSpacing.md),
-
-                      // `scaleDown` : taille 74 si la place le permet, sinon le
+                      // Salut + titre forment un bloc : espacement serré.
+                      const SizedBox(height: AppSpacing.sm),
+                      // `scaleDown` : taille 56 si la place le permet, sinon le
                       // mot rétrécit d'un bloc au lieu de passer à la ligne.
-                      CardexLogoText(size: 50),
-                      SizedBox(height: AppSpacing.md),
-                      Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(AppSpacing.sm),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Text(
-                                    "128",
-                                    style: TextStyle(
-                                      color: AppColors.inkYellow,
+                      const FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: CardexLogoText(size: 56),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      // `Container` plutôt que `Card` : pas de marge, d'ombre
+                      // ni de couleur Material imposées, juste un fond arrondi.
+                      Container(
+                        padding: const EdgeInsets.all(AppSpacing.md),
+                        decoration: BoxDecoration(
+                          color: AppColors.ink,
+                          borderRadius: BorderRadius.circular(AppRadius.md),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                // `Expanded` : le texte prend la place restante
+                                // et pousse "OUVRIR" à droite.
+                                Expanded(
+                                  // Un seul texte, plusieurs styles : chaque
+                                  // `TextSpan` hérite du style parent et ne
+                                  // redéfinit que ce qui change.
+                                  child: Text.rich(
+                                    TextSpan(
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .labelMedium,
+                                      children: const [
+                                        TextSpan(
+                                          text: '128',
+                                          style: TextStyle(
+                                            color: AppColors.yellow,
+                                          ),
+                                        ),
+                                        TextSpan(text: ' / 248 CAPTURÉES'),
+                                      ],
                                     ),
                                   ),
-                                  Text(
-                                    "/ 248 CAPTURÉES",
-                                    style: TextStyle(
-                                      color: AppColors.textPrimary,
-                                    ),
+                                ),
+                                TextButton(
+                                  onPressed: () {},
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: AppColors.textMuted,
+                                    textStyle: Theme.of(context)
+                                        .textTheme
+                                        .labelSmall,
+                                    // Retire le padding et la taille minimale
+                                    // du TextButton, pour qu'il s'aligne sur
+                                    // le bord droit de la carte.
+                                    padding: EdgeInsets.zero,
+                                    minimumSize: Size.zero,
+                                    tapTargetSize:
+                                        MaterialTapTargetSize.shrinkWrap,
                                   ),
-                                  TextButton(
-                                    onPressed: () {},
-                                    child: Text(
-                                      "Ouvrir >",
-                                      style: TextStyle(color: AppColors.cream),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              LinearProgressIndicator(
-                                value: 0.64,
-                                color: AppColors.yellow,
-                                backgroundColor: AppColors.inkMuted,
-                              ),
-                              SizedBox(height: AppSpacing.sm),
-                              Text("Niv. 7 · Spotter — 640 / 1000 XP"),
-                              SizedBox(height: AppSpacing.sm),
-                            ],
-                          ),
+                                  child: const Text('OUVRIR ›'),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: AppSpacing.sm),
+                            LinearProgressIndicator(
+                              value: 128 / 248,
+                              minHeight: 8,
+                              color: AppColors.yellow,
+                              backgroundColor: AppColors.border,
+                              borderRadius:
+                                  BorderRadius.circular(AppRadius.pill),
+                            ),
+                            const SizedBox(height: AppSpacing.sm),
+                            Text(
+                              'Niv. 7 · Spotter — 640 / 1000 XP',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyLarge
+                                  ?.copyWith(color: AppColors.textMuted),
+                            ),
+                          ],
                         ),
                       ),
                     ]

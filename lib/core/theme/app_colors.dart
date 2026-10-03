@@ -7,6 +7,8 @@ import 'package:flutter/painting.dart';
 abstract final class AppColors {
   // Couleurs de marque
   static const red = Color(0xFFC8102E);
+  static const green = Color(0xFF2E7D3E);
+  static const blue = Color(0xFF2F5FA8);
   static const yellow = Color(0xFFF2B233);
 
   // Fonds
@@ -18,7 +20,6 @@ abstract final class AppColors {
   static const cream = Color(0xFFF1EFE9);
   static const ink = Color(0xFF111111);
   static const inkMuted = Color(0xFF55565B);
-  static const inkYellow = Color(0xFFF2B233);
 
   // Textes sur fond sombre
   static const textPrimary = Color(0xFFF1EFE9);
