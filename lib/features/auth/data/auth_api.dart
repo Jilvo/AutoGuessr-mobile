@@ -23,7 +23,7 @@ class AuthApi {
   }) async {
     final response = await _dio.post<Map<String, dynamic>>(
       _loginPath,
-      data: {'email': email, 'password': password},
+      data: {'identifier': email, 'password': password},
       // Si ton backend utilise `OAuth2PasswordRequestForm` (FastAPI), il attend
       // un formulaire avec un champ `username` à la place du JSON :
       //   data: {'username': email, 'password': password},

@@ -1,11 +1,11 @@
-/// Configuration injectée au moment du build via `--dart-define`.
-///
-/// Exemple : `flutter run --dart-define=API_BASE_URL=https://api.mondomaine.com`
+/// Configuration de l'app.
 abstract final class AppConfig {
-  /// `10.0.2.2` est l'adresse du `localhost` de ta machine vue depuis
-  /// l'émulateur Android (le `localhost` de l'émulateur, c'est lui-même).
-  static const apiBaseUrl = String.fromEnvironment(
-    'API_BASE_URL',
-    defaultValue: 'http://10.0.2.2:8000',
-  );
+  /// URL de l'API.
+  ///
+  /// En développement : `127.0.0.1:8000` + `adb reverse tcp:8000 tcp:8000`.
+  /// Le tunnel ADB redirige le `localhost` du téléphone (ou de l'émulateur)
+  /// vers le `localhost` du PC, via USB. À relancer à chaque rebranchement.
+  ///
+  /// 👉 À remplacer par l'URL du backend déployé (en HTTPS).
+  static const apiBaseUrl = 'http://127.0.0.1:8000';
 }

@@ -21,6 +21,11 @@ abstract final class AppColors {
   static const ink = Color(0xFF111111);
   static const inkMuted = Color(0xFF55565B);
 
+  // Palette "écran LCD" façon Game Boy : liste CarDex, dernière capture...
+  static const lcd = Color(0xFFE3EBD2);
+  static const lcdInk = Color(0xFF1E2416);
+  static const lcdInkMuted = Color(0xFF5C6650);
+
   // Textes sur fond sombre
   static const textPrimary = Color(0xFFF1EFE9);
   static const textMuted = Color(0xFF9A9BA0);

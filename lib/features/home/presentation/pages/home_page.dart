@@ -22,8 +22,8 @@ class HomePage extends StatelessWidget {
       _ => null,
     };
 
-    // bool isUserAuthenticated = user != null;
-    bool isUserAuthenticated = true;
+    bool isUserAuthenticated = user != null;
+    // bool isUserAuthenticated = true;
     return Scaffold(
       body: Column(
         children: [
@@ -163,15 +163,14 @@ class HomePage extends StatelessWidget {
                               minHeight: 8,
                               color: AppColors.yellow,
                               backgroundColor: AppColors.border,
-                              borderRadius:
-                                  BorderRadius.circular(AppRadius.pill),
+                              borderRadius: BorderRadius.circular(
+                                AppRadius.pill,
+                              ),
                             ),
                             const SizedBox(height: AppSpacing.sm),
                             Text(
                               'Niv. 7 · Spotter — 640 / 1000 XP',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyLarge
+                              style: Theme.of(context).textTheme.bodyLarge
                                   ?.copyWith(color: AppColors.textMuted),
                             ),
                           ],
@@ -255,9 +254,101 @@ class HomePage extends StatelessWidget {
                     ],
             ),
           ),
-          Text(
-            'Bienvenue ${user?.pseudo ?? 'Inconnu'} !',
-            style: Theme.of(context).textTheme.headlineSmall,
+          Card(
+            margin: const EdgeInsets.all(AppSpacing.md),
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Dernières voitures capturées',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  // TODO(toi) : remplacer par une liste de voitures capturées.
+                  const Center(
+                    child: PixelLabel(
+                      'Aucune voiture capturée pour l’instant.',
+                      color: AppColors.textMuted,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // TODO(toi) : remplacer les données en dur par la vraie dernière
+          // capture.
+          Padding(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            // `Material` + `InkWell` : toute la carte est cliquable, avec
+            // l'ondulation Material qui suit l'arrondi (`borderRadius`).
+            child: Material(
+              color: AppColors.lcd,
+              borderRadius: BorderRadius.circular(AppRadius.lg),
+              clipBehavior: Clip.antiAlias,
+              child: InkWell(
+                onTap: () {
+                  // TODO(toi) : ouvrir la fiche de la voiture.
+                },
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  child: Row(
+                    children: [
+                      // Vignette : taille fixe, en attendant la vraie photo.
+                      Container(
+                        width: 64,
+                        height: 44,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: AppColors.lcdInk,
+                          borderRadius: BorderRadius.circular(AppRadius.md),
+                        ),
+                        child: Text(
+                          'R34',
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(color: AppColors.lcd),
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.md),
+                      // `Expanded` : les textes prennent la place restante et
+                      // poussent le chevron contre le bord droit.
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          spacing: AppSpacing.xs,
+                          children: [
+                            const PixelLabel(
+                              'Dernière capture · hier',
+                              color: AppColors.lcdInkMuted,
+                            ),
+                            Text(
+                              '#087 Skyline GT-R R34',
+                              // Un nom trop long est coupé avec "…" au lieu
+                              // de faire déborder la ligne.
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(
+                                    color: AppColors.lcdInk,
+                                    fontSize: 20,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Simple indice visuel : c'est la carte entière qui
+                      // réagit au toucher.
+                      const Icon(
+                        Icons.chevron_right,
+                        color: AppColors.lcdInk,
+                        size: 28,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           ),
         ],
       ),
