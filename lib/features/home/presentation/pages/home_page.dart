@@ -1,6 +1,7 @@
 // ignore_for_file: dead_code
 
 import 'package:auto_guessr_mobile/app/routes.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -489,11 +490,25 @@ class _HomeMenuState extends State<_HomeMenu> {
         // autre entrée (le geste appartient au widget où il a commencé).
         // Appui long plutôt que simple glissement : un glissement normal
         // reste libre pour faire défiler la page.
-        child: GestureDetector(
-          onLongPressStart: (details) => _onPressMove(details.globalPosition),
-          onLongPressMoveUpdate: (details) =>
-              _onPressMove(details.globalPosition),
-          onLongPressEnd: (details) => _onPressEnd(details.globalPosition),
+        child: RawGestureDetector(
+          gestures: {
+            LongPressGestureRecognizer:
+                GestureRecognizerFactoryWithHandlers<
+                  LongPressGestureRecognizer
+                >(
+                  () => LongPressGestureRecognizer(
+                    duration: const Duration(milliseconds: 200),
+                  ),
+                  (recognizer) {
+                    recognizer.onLongPressStart = (details) =>
+                        _onPressMove(details.globalPosition);
+                    recognizer.onLongPressMoveUpdate = (details) =>
+                        _onPressMove(details.globalPosition);
+                    recognizer.onLongPressEnd = (details) =>
+                        _onPressEnd(details.globalPosition);
+                  },
+                ),
+          },
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             spacing: AppSpacing.lg,
