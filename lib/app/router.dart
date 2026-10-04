@@ -8,10 +8,13 @@ import 'package:auto_guessr_mobile/features/auth/presentation/pages/login_page.d
 import 'package:auto_guessr_mobile/features/auth/presentation/pages/register_page.dart';
 import 'package:auto_guessr_mobile/features/auth/presentation/pages/splash_page.dart';
 import 'package:auto_guessr_mobile/features/home/presentation/pages/home_page.dart';
+import 'package:auto_guessr_mobile/features/options/presentation/pages/options_page.dart';
+import 'package:auto_guessr_mobile/features/profil/presentation/profil_page.dart';
+import 'package:auto_guessr_mobile/features/scanner/presentation/pages/scanner_page.dart';
 
 /// Pages réservées aux utilisateurs connectés. Toutes les autres sont publiques.
-/// 👉 Ajoute ici les futures pages privées (profil, historique...).
-const _protectedRoutes = <String>{};
+/// 👉 Ajoute ici les futures pages privées (historique...).
+const _protectedRoutes = <String>{Routes.profile};
 
 GoRouter createRouter(AuthCubit authCubit) {
   return GoRouter(
@@ -44,6 +47,9 @@ GoRouter createRouter(AuthCubit authCubit) {
       GoRoute(path: Routes.login, builder: (_, _) => const LoginPage()),
       GoRoute(path: Routes.register, builder: (_, _) => const RegisterPage()),
       GoRoute(path: Routes.home, builder: (_, _) => const HomePage()),
+      GoRoute(path: Routes.scanner, builder: (_, _) => const ScannerPage()),
+      GoRoute(path: Routes.profile, builder: (_, _) => const ProfilPage()),
+      GoRoute(path: Routes.options, builder: (_, _) => const OptionsPage()),
     ],
   );
 }

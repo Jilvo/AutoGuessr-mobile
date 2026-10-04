@@ -2,6 +2,7 @@
 
 import 'package:auto_guessr_mobile/app/routes.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:auto_guessr_mobile/core/theme/app_colors.dart';
 import 'package:auto_guessr_mobile/core/theme/app_spacing.dart';
@@ -353,51 +354,224 @@ class HomePage extends StatelessWidget {
             ),
             Padding(
               padding: const EdgeInsets.all(AppSpacing.md),
-              // La Column parente centre ses enfants sans les étirer : sans
-              // ce SizedBox, la boîte prendrait la largeur de son texte.
-              child: SizedBox(
-                width: double.infinity,
-                child: RetroDialogBox(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const PixelLabel(
-                        'Capturer',
-                        color: AppColors.ink,
-                        size: 16,
-                      ),
-                      const SizedBox(height: AppSpacing.xs),
-                      Text(
-                        'Ouvrir le scanner',
-                        style: Theme.of(context).textTheme.bodyLarge
-                            ?.copyWith(color: AppColors.inkMuted),
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
-                      const PixelLabel(
-                        'Profil',
-                        color: AppColors.ink,
-                        size: 16,
-                      ),
-                      const SizedBox(height: AppSpacing.xs),
-                      Text(
-                        'Carte pilote · 3 / 8 badges',
-                        style: Theme.of(context).textTheme.bodyLarge
-                            ?.copyWith(color: AppColors.inkMuted),
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
-                      const PixelLabel(
-                        'Options',
-                        color: AppColors.ink,
-                        size: 16,
-                      ),
-                    ],
-                  ),
-                ),
+              child: _HomeMenu(
+                // Le menu dit QUELLE entrée a été choisie, la page décide OÙ
+                // aller. Le `switch` sur l'enum est exhaustif : si tu ajoutes
+                // une entrée, le compilateur t'obligera à la gérer ici.
+                // `push` : on empile l'écran, la flèche retour ramène ici.
+                onActivated: (entry) => context.push(switch (entry) {
+                  _HomeMenuEntry.capture => Routes.scanner,
+                  _HomeMenuEntry.profile => Routes.profile,
+                  _HomeMenuEntry.options => Routes.options,
+                }),
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Les entrées du menu d'accueil. Chaque valeur porte ses propres textes :
+/// ajouter une entrée = ajouter une ligne ici.
+enum _HomeMenuEntry {
+  capture('Capturer', 'Ouvrir le scanner'),
+  profile('Profil', 'Carte pilote · 3 / 8 badges'),
+  options('Options');
+
+  const _HomeMenuEntry(this.title, [this.subtitle]);
+
+  final String title;
+
+  /// Facultatif : "Options" n'en a pas.
+  final String? subtitle;
+}
+
+/// Menu façon jeu rétro : un ▶ devant l'entrée sélectionnée.
+///
+/// - Tap sur une entrée : la sélectionne. Tap sur l'entrée déjà sélectionnée :
+///   la valide (comme le bouton A d'une Game Boy).
+/// - Appui long puis glisser : le ▶ suit le doigt ; lâcher valide l'entrée
+///   sous le doigt (glisser hors du menu avant de lâcher = annuler).
+///
+/// ─── Comment marche un StatefulWidget ───────────────────────────────────────
+/// Il est fait de DEUX classes :
+/// 1. `_HomeMenu` (le widget) : la CONFIGURATION, immuable (que des `final`).
+///    Flutter la jette et la recrée à chaque fois que le parent se reconstruit.
+/// 2. `_HomeMenuState` (l'état) : créé UNE seule fois par `createState()`, il
+///    SURVIT aux reconstructions. C'est là que vivent les variables qui
+///    changent, comme `_selected`.
+/// Depuis l'état, on lit la configuration avec `widget.xxx`.
+///
+/// Widget à part : un `setState` ici ne reconstruit que le menu, pas toute
+/// la page d'accueil.
+class _HomeMenu extends StatefulWidget {
+  const _HomeMenu({required this.onActivated});
+
+  /// Appelé quand une entrée est VALIDÉE (pas quand elle est juste
+  /// sélectionnée : ça, c'est l'affaire interne du menu).
+  final ValueChanged<_HomeMenuEntry> onActivated;
+
+  @override
+  State<_HomeMenu> createState() => _HomeMenuState();
+}
+
+class _HomeMenuState extends State<_HomeMenu> {
+  /// L'état : l'entrée devant laquelle s'affiche le ▶.
+  _HomeMenuEntry _selected = _HomeMenuEntry.capture;
+
+  /// Une clé par entrée, pour retrouver où chacune est dessinée à l'écran
+  /// pendant le glissement. Créées une seule fois, en même temps que l'état.
+  final _itemKeys = {
+    for (final entry in _HomeMenuEntry.values) entry: GlobalKey(),
+  };
+
+  // Cycle de vie d'un State (rien à surcharger ici, mais bon à connaître) :
+  // - initState() : appelé UNE fois, à la création. Pour initialiser un
+  //   controller, s'abonner à un stream...
+  // - build()     : appelé après chaque setState, et à chaque reconstruction
+  //   du parent. Doit être rapide et sans effet de bord.
+  // - dispose()   : appelé UNE fois, quand le widget quitte l'écran. Pour
+  //   libérer controllers et abonnements (les GlobalKey n'en ont pas besoin).
+
+  /// Change la sélection. `setState` prévient Flutter : "l'état a changé,
+  /// rappelle build()". Sans lui, la variable changerait, mais pas l'écran.
+  void _select(_HomeMenuEntry entry) {
+    // Rien ne change : on évite un rebuild (et une vibration) inutile. Pendant
+    // un glissement, ce cas arrive à chaque pixel de mouvement.
+    if (entry == _selected) return;
+    HapticFeedback.selectionClick(); // petit "clic", comme un menu de console
+    setState(() => _selected = entry);
+  }
+
+  void _onItemTap(_HomeMenuEntry entry) {
+    if (entry == _selected) {
+      widget.onActivated(entry); // `widget` = la configuration (_HomeMenu)
+    } else {
+      _select(entry);
+    }
+  }
+
+  /// Quelle entrée se trouve sous le doigt ? `null` s'il est entre deux
+  /// entrées ou hors du menu.
+  _HomeMenuEntry? _entryAt(Offset globalPosition) {
+    for (final entry in _HomeMenuEntry.values) {
+      // Le "RenderBox" est l'objet qui connaît la taille et la position réelles
+      // du widget à l'écran ; la GlobalKey permet de le retrouver.
+      final box = _itemKeys[entry]!.currentContext?.findRenderObject();
+      if (box is! RenderBox) continue;
+      // Position du doigt dans le repère de l'entrée : il est dessus s'il se
+      // trouve entre (0, 0) et (largeur, hauteur).
+      final local = box.globalToLocal(globalPosition);
+      if ((Offset.zero & box.size).contains(local)) return entry;
+    }
+    return null;
+  }
+
+  void _onPressMove(Offset globalPosition) {
+    if (_entryAt(globalPosition) case final entry?) _select(entry);
+  }
+
+  void _onPressEnd(Offset globalPosition) {
+    if (_entryAt(globalPosition) case final entry?) widget.onActivated(entry);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // La Column parente centre ses enfants sans les étirer : sans ce
+    // SizedBox, la boîte prendrait la largeur de son texte.
+    return SizedBox(
+      width: double.infinity,
+      child: RetroDialogBox(
+        // UN seul détecteur autour de tout le menu pour l'appui long : un
+        // détecteur par entrée ne verrait jamais le doigt arriver depuis une
+        // autre entrée (le geste appartient au widget où il a commencé).
+        // Appui long plutôt que simple glissement : un glissement normal
+        // reste libre pour faire défiler la page.
+        child: GestureDetector(
+          onLongPressStart: (details) => _onPressMove(details.globalPosition),
+          onLongPressMoveUpdate: (details) =>
+              _onPressMove(details.globalPosition),
+          onLongPressEnd: (details) => _onPressEnd(details.globalPosition),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: AppSpacing.lg,
+            children: [
+              for (final entry in _HomeMenuEntry.values)
+                _HomeMenuItem(
+                  key: _itemKeys[entry],
+                  entry: entry,
+                  selected: entry == _selected,
+                  onTap: () => _onItemTap(entry),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Une ligne du menu : le ▶ (si sélectionnée), le titre et le sous-titre.
+///
+/// `StatelessWidget` : elle ne décide rien, elle affiche ce qu'on lui donne
+/// et PRÉVIENT le parent quand on la touche (via [onTap]). C'est le parent
+/// qui possède l'état : on dit qu'on "remonte l'état" (lifting state up).
+class _HomeMenuItem extends StatelessWidget {
+  const _HomeMenuItem({
+    super.key,
+    required this.entry,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final _HomeMenuEntry entry;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    // `Semantics` : annonce "bouton, sélectionné" au lecteur d'écran.
+    return Semantics(
+      button: true,
+      selected: selected,
+      child: GestureDetector(
+        onTap: onTap,
+        // Sans `opaque`, seuls le texte et l'icône réagiraient : toucher
+        // l'espace vide de la ligne ne ferait rien.
+        behavior: HitTestBehavior.opaque,
+        child: _buildContent(context),
+      ),
+    );
+  }
+
+  Widget _buildContent(BuildContext context) {
+    return Row(
+      children: [
+        // `maintainSize` : le ▶ garde sa place même caché, pour que le texte
+        // ne saute pas de côté quand la sélection change.
+        Visibility.maintain(
+          visible: selected,
+          child: const Icon(Icons.play_arrow, color: AppColors.ink, size: 28),
+        ),
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: AppSpacing.xs,
+            children: [
+              PixelLabel(entry.title, color: AppColors.ink, size: 16),
+              if (entry.subtitle case final subtitle?)
+                Text(
+                  subtitle,
+                  style: Theme.of(context).textTheme.bodyLarge
+                      ?.copyWith(color: AppColors.inkMuted),
+                ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

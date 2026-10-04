@@ -17,3 +17,4 @@ export 'circle_icon_button.dart';
 export 'or_divider.dart';
 export 'pixel_label.dart';
 export 'retro_dialog_box.dart';
+export 'coming_soon_page.dart';

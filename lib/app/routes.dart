@@ -4,4 +4,7 @@ abstract final class Routes {
   static const login = '/login';
   static const register = '/register';
   static const home = '/';
+  static const scanner = '/scanner';
+  static const profile = '/profile';
+  static const options = '/options';
 }
