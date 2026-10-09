@@ -53,7 +53,7 @@ class _CardexTextFieldState extends State<CardexTextField> {
         Row(
           children: [
             Expanded(child: PixelLabel(widget.label)),
-            if (widget.labelAction case final action?) action,
+            ?widget.labelAction,
           ],
         ),
         const SizedBox(height: AppSpacing.sm),

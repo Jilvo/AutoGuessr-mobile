@@ -8,9 +8,9 @@ import 'package:auto_guessr_mobile/core/storage/token_storage.dart';
 /// réponses passent par lui, donc cette logique n'est écrite qu'une seule fois.
 class AuthInterceptor extends Interceptor {
   AuthInterceptor({
-    required TokenStorage tokenStorage,
+    required this._tokenStorage,
     required this.onUnauthorized,
-  }) : _tokenStorage = tokenStorage;
+  });
 
   final TokenStorage _tokenStorage;
 

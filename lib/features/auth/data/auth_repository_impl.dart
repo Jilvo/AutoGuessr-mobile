@@ -14,9 +14,8 @@ import 'package:auto_guessr_mobile/features/auth/domain/user.dart';
 /// Son rôle : orchestrer l'API et le stockage du token, convertir les DTO en
 /// objets du domaine, et traduire les erreurs techniques en `AppException`.
 class AuthRepositoryImpl implements AuthRepository {
-  AuthRepositoryImpl({required AuthApi api, required TokenStorage tokenStorage})
-    : _api = api,
-      _tokenStorage = tokenStorage;
+  AuthRepositoryImpl({required this._api, required TokenStorage tokenStorage})
+    : _tokenStorage = tokenStorage;
 
   final AuthApi _api;
   final TokenStorage _tokenStorage;

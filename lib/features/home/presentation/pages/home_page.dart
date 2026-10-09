@@ -26,6 +26,20 @@ class HomePage extends StatelessWidget {
 
     bool isUserAuthenticated = user != null;
     // bool isUserAuthenticated = true;
+
+    // Les deux menus (connecté ou non) partagent ce handler. Le menu dit QUELLE
+    // entrée a été choisie, la page décide OÙ aller. Le `switch` sur l'enum est
+    // exhaustif : si tu ajoutes une entrée, le compilateur t'obligera à la
+    // gérer ici. `push` : on empile l'écran, la flèche retour ramène ici.
+    void openEntry(_HomeMenuEntry entry) => context.push(switch (entry) {
+      // TODO(toi) : pointer vers l'écran de jeu quand il existera.
+      _HomeMenuEntry.newGame => Routes.register,
+      _HomeMenuEntry.resume => Routes.login,
+      _HomeMenuEntry.capture => Routes.scanner,
+      _HomeMenuEntry.profile => Routes.profile,
+      _HomeMenuEntry.options => Routes.options,
+    });
+
     return Scaffold(
       body: SingleChildScrollView(
         child: Column(
@@ -92,7 +106,7 @@ class HomePage extends StatelessWidget {
                         // Espacement plus grand ici : on change de "bloc".
                         const SizedBox(height: AppSpacing.lg),
                         PixelLabel(
-                          "Salut, ${user?.pseudo ?? 'Inconnu'} !",
+                          "Salut, ${user.pseudo ?? 'Inconnu'} !",
                           color: AppColors.textPrimary,
                           size: 15,
                         ),
@@ -257,116 +271,151 @@ class HomePage extends StatelessWidget {
                       ],
               ),
             ),
-            Card(
-              margin: const EdgeInsets.all(AppSpacing.md),
-              child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Dernières voitures capturées',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    // TODO(toi) : remplacer par une liste de voitures capturées.
-                    const Center(
-                      child: PixelLabel(
-                        'Aucune voiture capturée pour l’instant.',
-                        color: AppColors.textMuted,
+            // `if` / `else` dans une liste : `...[ ]` "déplie" plusieurs widgets
+            // d'un coup dans les enfants de la Column.
+            if (isUserAuthenticated) ...[
+
+              Card(
+                margin: const EdgeInsets.all(AppSpacing.md),
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Dernières voitures capturées',
+                        style: Theme.of(context).textTheme.titleMedium,
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: AppSpacing.md),
+                      // TODO(toi) : remplacer par une liste de voitures capturées.
+                      const Center(
+                        child: PixelLabel(
+                          'Aucune voiture capturée pour l’instant.',
+                          color: AppColors.textMuted,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            // TODO(toi) : remplacer les données en dur par la vraie dernière
-            // capture.
-            Padding(
-              padding: const EdgeInsets.all(AppSpacing.md),
-              // `Material` + `InkWell` : toute la carte est cliquable, avec
-              // l'ondulation Material qui suit l'arrondi (`borderRadius`).
-              child: Material(
-                color: AppColors.lcd,
-                borderRadius: BorderRadius.circular(AppRadius.lg),
-                clipBehavior: Clip.antiAlias,
-                child: InkWell(
-                  onTap: () {
-                    // TODO(toi) : ouvrir la fiche de la voiture.
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppSpacing.md),
-                    child: Row(
-                      children: [
-                        // Vignette : taille fixe, en attendant la vraie photo.
-                        Container(
-                          width: 64,
-                          height: 44,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
+              // TODO(toi) : remplacer les données en dur par la vraie dernière
+              // capture.
+              Padding(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                // `Material` + `InkWell` : toute la carte est cliquable, avec
+                // l'ondulation Material qui suit l'arrondi (`borderRadius`).
+                child: Material(
+                  color: AppColors.lcd,
+                  borderRadius: BorderRadius.circular(AppRadius.lg),
+                  clipBehavior: Clip.antiAlias,
+                  child: InkWell(
+                    onTap: () {
+                      // TODO(toi) : ouvrir la fiche de la voiture.
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(AppSpacing.md),
+                      child: Row(
+                        children: [
+                          // Vignette : taille fixe, en attendant la vraie photo.
+                          Container(
+                            width: 64,
+                            height: 44,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: AppColors.lcdInk,
+                              borderRadius: BorderRadius.circular(AppRadius.md),
+                            ),
+                            child: Text(
+                              'R34',
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(color: AppColors.lcd),
+                            ),
+                          ),
+                          const SizedBox(width: AppSpacing.md),
+                          // `Expanded` : les textes prennent la place restante et
+                          // poussent le chevron contre le bord droit.
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              spacing: AppSpacing.xs,
+                              children: [
+                                const PixelLabel(
+                                  'Dernière capture · hier',
+                                  color: AppColors.lcdInkMuted,
+                                ),
+                                Text(
+                                  '#087 Skyline GT-R R34',
+                                  // Un nom trop long est coupé avec "…" au lieu
+                                  // de faire déborder la ligne.
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(context).textTheme.titleMedium
+                                      ?.copyWith(
+                                        color: AppColors.lcdInk,
+                                        fontSize: 20,
+                                      ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          // Simple indice visuel : c'est la carte entière qui
+                          // réagit au toucher.
+                          const Icon(
+                            Icons.chevron_right,
                             color: AppColors.lcdInk,
-                            borderRadius: BorderRadius.circular(AppRadius.md),
+                            size: 28,
                           ),
-                          child: Text(
-                            'R34',
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(color: AppColors.lcd),
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.md),
-                        // `Expanded` : les textes prennent la place restante et
-                        // poussent le chevron contre le bord droit.
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            spacing: AppSpacing.xs,
-                            children: [
-                              const PixelLabel(
-                                'Dernière capture · hier',
-                                color: AppColors.lcdInkMuted,
-                              ),
-                              Text(
-                                '#087 Skyline GT-R R34',
-                                // Un nom trop long est coupé avec "…" au lieu
-                                // de faire déborder la ligne.
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context).textTheme.titleMedium
-                                    ?.copyWith(
-                                      color: AppColors.lcdInk,
-                                      fontSize: 20,
-                                    ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        // Simple indice visuel : c'est la carte entière qui
-                        // réagit au toucher.
-                        const Icon(
-                          Icons.chevron_right,
-                          color: AppColors.lcdInk,
-                          size: 28,
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(AppSpacing.md),
-              child: _HomeMenu(
-                // Le menu dit QUELLE entrée a été choisie, la page décide OÙ
-                // aller. Le `switch` sur l'enum est exhaustif : si tu ajoutes
-                // une entrée, le compilateur t'obligera à la gérer ici.
-                // `push` : on empile l'écran, la flèche retour ramène ici.
-                onActivated: (entry) => context.push(switch (entry) {
-                  _HomeMenuEntry.capture => Routes.scanner,
-                  _HomeMenuEntry.profile => Routes.profile,
-                  _HomeMenuEntry.options => Routes.options,
-                }),
+              Padding(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                child: _HomeMenu(
+                  entries: const [
+                    _HomeMenuEntry.capture,
+                    _HomeMenuEntry.profile,
+                    _HomeMenuEntry.options,
+                  ],
+                  onActivated: openEntry,
+                ),
               ),
-            ),
+            ] else ...[
+              PixelLabel("Quelle est cette voiture ?",color: AppColors.yellow,size: 14,),
+              Center(
+                child: Card(
+                  // `RoundedRectangleBorder` : coins arrondis ; `side` dessine
+                  // le trait de la bordure (`Border.all` ferait des angles droits).
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.lg),
+                    side: const BorderSide(color: AppColors.border, width: 2),
+                  ),
+                  // Découpe l'image selon l'arrondi : sans ça, elle déborde
+                  // par-dessus les coins.
+                  clipBehavior: Clip.antiAlias,
+                  child: Image.asset("assets/images/clio4.jpg"),
+                ),
+              ),
+              Row(spacing: AppSpacing.xl,
+                children: [
+                PixelLabel("N°001"),
+                PixelLabel("Devine-la pour +50LP")
+              ],),
+
+              Padding(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                child: _HomeMenu(
+                  entries: const [
+                    _HomeMenuEntry.newGame,
+                    _HomeMenuEntry.resume,
+                    _HomeMenuEntry.options,
+                  ],
+                  onActivated: openEntry,
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -377,6 +426,10 @@ class HomePage extends StatelessWidget {
 /// Les entrées du menu d'accueil. Chaque valeur porte ses propres textes :
 /// ajouter une entrée = ajouter une ligne ici.
 enum _HomeMenuEntry {
+  // Visiteur non connecté.
+  newGame('Nouvelle partie'),
+  resume('Continuer', 'Connexion · reprends ta collection'),
+  // Utilisateur connecté.
   capture('Capturer', 'Ouvrir le scanner'),
   profile('Profil', 'Carte pilote · 3 / 8 badges'),
   options('Options');
@@ -408,7 +461,11 @@ enum _HomeMenuEntry {
 /// Widget à part : un `setState` ici ne reconstruit que le menu, pas toute
 /// la page d'accueil.
 class _HomeMenu extends StatefulWidget {
-  const _HomeMenu({required this.onActivated});
+  const _HomeMenu({required this.entries, required this.onActivated});
+
+  /// Les entrées à afficher, dans l'ordre. La première est sélectionnée au
+  /// départ.
+  final List<_HomeMenuEntry> entries;
 
   /// Appelé quand une entrée est VALIDÉE (pas quand elle est juste
   /// sélectionnée : ça, c'est l'affaire interne du menu).
@@ -420,7 +477,9 @@ class _HomeMenu extends StatefulWidget {
 
 class _HomeMenuState extends State<_HomeMenu> {
   /// L'état : l'entrée devant laquelle s'affiche le ▶.
-  _HomeMenuEntry _selected = _HomeMenuEntry.capture;
+  /// `late` : on ne peut pas lire `widget` ici, on l'initialise dans
+  /// `initState`.
+  late _HomeMenuEntry _selected;
 
   /// Une clé par entrée, pour retrouver où chacune est dessinée à l'écran
   /// pendant le glissement. Créées une seule fois, en même temps que l'état.
@@ -428,7 +487,25 @@ class _HomeMenuState extends State<_HomeMenu> {
     for (final entry in _HomeMenuEntry.values) entry: GlobalKey(),
   };
 
-  // Cycle de vie d'un State (rien à surcharger ici, mais bon à connaître) :
+  @override
+  void initState() {
+    super.initState();
+    _selected = widget.entries.first;
+  }
+
+  /// Appelé quand le parent reconstruit le menu avec une nouvelle
+  /// configuration (ex. : on se connecte, la liste d'entrées change). L'état,
+  /// lui, a survécu : si l'entrée sélectionnée n'existe plus, on revient à la
+  /// première.
+  @override
+  void didUpdateWidget(_HomeMenu oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!widget.entries.contains(_selected)) {
+      _selected = widget.entries.first;
+    }
+  }
+
+  // Cycle de vie d'un State :
   // - initState() : appelé UNE fois, à la création. Pour initialiser un
   //   controller, s'abonner à un stream...
   // - build()     : appelé après chaque setState, et à chaque reconstruction
@@ -457,7 +534,7 @@ class _HomeMenuState extends State<_HomeMenu> {
   /// Quelle entrée se trouve sous le doigt ? `null` s'il est entre deux
   /// entrées ou hors du menu.
   _HomeMenuEntry? _entryAt(Offset globalPosition) {
-    for (final entry in _HomeMenuEntry.values) {
+    for (final entry in widget.entries) {
       // Le "RenderBox" est l'objet qui connaît la taille et la position réelles
       // du widget à l'écran ; la GlobalKey permet de le retrouver.
       final box = _itemKeys[entry]!.currentContext?.findRenderObject();
@@ -513,7 +590,7 @@ class _HomeMenuState extends State<_HomeMenu> {
             crossAxisAlignment: CrossAxisAlignment.start,
             spacing: AppSpacing.lg,
             children: [
-              for (final entry in _HomeMenuEntry.values)
+              for (final entry in widget.entries)
                 _HomeMenuItem(
                   key: _itemKeys[entry],
                   entry: entry,
