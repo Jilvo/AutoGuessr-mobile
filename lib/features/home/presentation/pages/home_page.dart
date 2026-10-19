@@ -1,5 +1,3 @@
-// ignore_for_file: dead_code
-
 import 'package:auto_guessr_mobile/app/routes.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -7,13 +5,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:auto_guessr_mobile/core/theme/app_colors.dart';
 import 'package:auto_guessr_mobile/core/theme/app_spacing.dart';
-import 'package:auto_guessr_mobile/core/widgets/pixel_label.dart';
+import 'package:auto_guessr_mobile/features/auth/domain/user.dart';
 import 'package:auto_guessr_mobile/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:auto_guessr_mobile/features/auth/presentation/cubit/auth_state.dart';
 import 'package:go_router/go_router.dart';
 import 'package:auto_guessr_mobile/core/widgets/widgets.dart';
 
-/// Écran d'accueil provisoire, pour vérifier que l'authentification fonctionne.
+/// Écran d'accueil : une version visiteur et une version connectée.
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
@@ -23,9 +21,6 @@ class HomePage extends StatelessWidget {
       AuthAuthenticated(:final user) => user,
       _ => null,
     };
-
-    bool isUserAuthenticated = user != null;
-    // bool isUserAuthenticated = true;
 
     // Les deux menus (connecté ou non) partagent ce handler. Le menu dit QUELLE
     // entrée a été choisie, la page décide OÙ aller. Le `switch` sur l'enum est
@@ -40,383 +35,513 @@ class HomePage extends StatelessWidget {
       _HomeMenuEntry.options => Routes.options,
     });
 
+    // Chaque version est découpée en petits widgets (header + corps) : le
+    // `build` reste lisible, et le `if / else` n'apparaît qu'une fois par zone.
     return Scaffold(
       body: SingleChildScrollView(
         child: Column(
           children: [
             BackgroundHeader(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: isUserAuthenticated
-                    ? [
-                        Row(
-                          children: [
-                            // Partie décorative : elle prend la place restante et
-                            // rétrécit si l'écran est étroit ou la police agrandie.
-                            Expanded(
-                              child: Row(
-                                children: [
-                                  const CardexLogo(size: 26),
-                                  // `Flexible` : le label accepte d'avoir moins de
-                                  // place que demandé ; `FittedBox` le réduit alors
-                                  // au lieu de déborder.
-                                  Flexible(
-                                    child: FittedBox(
-                                      fit: BoxFit.scaleDown,
-                                      alignment: Alignment.centerLeft,
-                                      child: PixelLabel(
-                                        'Version rouge',
-                                        color: AppColors.textPrimary,
-                                        size: 13,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: AppSpacing.md),
-                            // L'action garde toujours sa taille : elle doit rester
-                            // lisible et facile à toucher.
-                            FilledButton(
-                              onPressed: () => isUserAuthenticated
-                                  ? context.read<AuthCubit>().logout()
-                                  : context.go(Routes.login),
-                              style: FilledButton.styleFrom(
-                                backgroundColor: AppColors.ink,
-                                foregroundColor: Colors.white,
-                                shape: const StadiumBorder(),
-                                // Remplace la largeur infinie du thème : obligatoire
-                                // pour un bouton placé dans un Row.
-                                minimumSize: const Size(0, 44),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: AppSpacing.md + 4,
-                                ),
-                                textStyle: Theme.of(context)
-                                    .textTheme
-                                    .labelMedium,
-                              ),
-                              child: Text(
-                                isUserAuthenticated
-                                    ? 'SE DÉCONNECTER'
-                                    : 'SE CONNECTER',
-                              ),
-                            ),
-                          ],
-                        ),
-                        // Espacement plus grand ici : on change de "bloc".
-                        const SizedBox(height: AppSpacing.lg),
-                        PixelLabel(
-                          "Salut, ${user.pseudo ?? 'Inconnu'} !",
-                          color: AppColors.textPrimary,
-                          size: 15,
-                        ),
-                        // Salut + titre forment un bloc : espacement serré.
-                        const SizedBox(height: AppSpacing.sm),
-                        // `scaleDown` : taille 56 si la place le permet, sinon le
-                        // mot rétrécit d'un bloc au lieu de passer à la ligne.
-                        const FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: CardexLogoText(size: 56),
-                        ),
-                        const SizedBox(height: AppSpacing.md),
-                        // `Container` plutôt que `Card` : pas de marge, d'ombre
-                        // ni de couleur Material imposées, juste un fond arrondi.
-                        Container(
-                          padding: const EdgeInsets.all(AppSpacing.md),
-                          decoration: BoxDecoration(
-                            color: AppColors.ink,
-                            borderRadius: BorderRadius.circular(AppRadius.md),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  // `Expanded` : le texte prend la place restante
-                                  // et pousse "OUVRIR" à droite.
-                                  Expanded(
-                                    // Un seul texte, plusieurs styles : chaque
-                                    // `TextSpan` hérite du style parent et ne
-                                    // redéfinit que ce qui change.
-                                    child: Text.rich(
-                                      TextSpan(
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .labelMedium,
-                                        children: const [
-                                          TextSpan(
-                                            text: '128',
-                                            style: TextStyle(
-                                              color: AppColors.yellow,
-                                            ),
-                                          ),
-                                          TextSpan(text: ' / 248 CAPTURÉES'),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                  TextButton(
-                                    onPressed: () {},
-                                    style: TextButton.styleFrom(
-                                      foregroundColor: AppColors.textMuted,
-                                      textStyle: Theme.of(context)
-                                          .textTheme
-                                          .labelSmall,
-                                      // Retire le padding et la taille minimale
-                                      // du TextButton, pour qu'il s'aligne sur
-                                      // le bord droit de la carte.
-                                      padding: EdgeInsets.zero,
-                                      minimumSize: Size.zero,
-                                      tapTargetSize:
-                                          MaterialTapTargetSize.shrinkWrap,
-                                    ),
-                                    child: const Text('OUVRIR ›'),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: AppSpacing.sm),
-                              LinearProgressIndicator(
-                                value: 128 / 248,
-                                minHeight: 8,
-                                color: AppColors.yellow,
-                                backgroundColor: AppColors.border,
-                                borderRadius: BorderRadius.circular(
-                                  AppRadius.pill,
-                                ),
-                              ),
-                              const SizedBox(height: AppSpacing.sm),
-                              Text(
-                                'Niv. 7 · Spotter — 640 / 1000 XP',
-                                style: Theme.of(context).textTheme.bodyLarge
-                                    ?.copyWith(color: AppColors.textMuted),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ]
-                    : [
-                        Row(
-                          children: [
-                            // Partie décorative : elle prend la place restante et
-                            // rétrécit si l'écran est étroit ou la police agrandie.
-                            Expanded(
-                              child: Row(
-                                children: [
-                                  const CardexLogo(size: 26),
-                                  // `Flexible` : le label accepte d'avoir moins de
-                                  // place que demandé ; `FittedBox` le réduit alors
-                                  // au lieu de déborder.
-                                  Flexible(
-                                    child: FittedBox(
-                                      fit: BoxFit.scaleDown,
-                                      alignment: Alignment.centerLeft,
-                                      child: PixelLabel(
-                                        'Version rouge',
-                                        color: AppColors.textPrimary,
-                                        size: 13,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: AppSpacing.md),
-                            // L'action garde toujours sa taille : elle doit rester
-                            // lisible et facile à toucher.
-                            FilledButton(
-                              onPressed: () => isUserAuthenticated
-                                  ? context.read<AuthCubit>().logout()
-                                  : context.go(Routes.login),
-                              style: FilledButton.styleFrom(
-                                backgroundColor: AppColors.ink,
-                                foregroundColor: Colors.white,
-                                shape: const StadiumBorder(),
-                                // Remplace la largeur infinie du thème : obligatoire
-                                // pour un bouton placé dans un Row.
-                                minimumSize: const Size(0, 44),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: AppSpacing.md + 4,
-                                ),
-                                textStyle: Theme.of(context)
-                                    .textTheme
-                                    .labelMedium,
-                              ),
-                              child: Text(
-                                isUserAuthenticated
-                                    ? 'SE DÉCONNECTER'
-                                    : 'SE CONNECTER',
-                              ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: AppSpacing.md),
-                        // `scaleDown` : taille 74 si la place le permet, sinon le
-                        // mot rétrécit d'un bloc au lieu de passer à la ligne.
-                        const Center(
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: CardexLogoText(size: 74),
-                          ),
-                        ),
-                        SizedBox(height: AppSpacing.md),
-                        PixelLabel(
-                          "FLASHE-LES TOUTES !",
-                          color: AppColors.textPrimary,
-                        ),
-                        SizedBox(height: AppSpacing.md),
-                        Text(
-                          "Prends en photo les voitures que tu croises. Chaque modèle identifié rejoint ton CarDex.",
-                          style: TextStyle(color: AppColors.textPrimary),
-                        ),
-                      ],
-              ),
+              child: user == null
+                  ? const _GuestHeader()
+                  : _UserHeader(user: user),
             ),
-            // `if` / `else` dans une liste : `...[ ]` "déplie" plusieurs widgets
-            // d'un coup dans les enfants de la Column.
-            if (isUserAuthenticated) ...[
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              child: user == null
+                  ? _GuestBody(onMenuEntry: openEntry)
+                  : _UserBody(onMenuEntry: openEntry),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
-              Card(
-                margin: const EdgeInsets.all(AppSpacing.md),
-                child: Padding(
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Dernières voitures capturées',
-                        style: Theme.of(context).textTheme.titleMedium,
+/// Première ligne du bandeau rouge : logo + "Version rouge" à gauche,
+/// [trailing] à droite (bouton de connexion ou avatar).
+class _TopBar extends StatelessWidget {
+  const _TopBar({required this.trailing});
+
+  final Widget trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        // Partie décorative : elle prend la place restante et rétrécit si
+        // l'écran est étroit ou la police agrandie.
+        Expanded(
+          child: Row(
+            children: [
+              const CardexLogo(size: 26),
+              // `Flexible` : le label accepte d'avoir moins de place que
+              // demandé ; `FittedBox` le réduit alors au lieu de déborder.
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: PixelLabel(
+                    'Version rouge',
+                    color: AppColors.textPrimary,
+                    size: 13,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: AppSpacing.md),
+        // L'action garde toujours sa taille : elle doit rester lisible et
+        // facile à toucher.
+        trailing,
+      ],
+    );
+  }
+}
+
+/// Bandeau du visiteur : bouton de connexion, gros logo, accroche.
+class _GuestHeader extends StatelessWidget {
+  const _GuestHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _TopBar(
+          trailing: FilledButton(
+            onPressed: () => context.go(Routes.login),
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.ink,
+              foregroundColor: Colors.white,
+              shape: const StadiumBorder(),
+              // Remplace la largeur infinie du thème : obligatoire pour un
+              // bouton placé dans un Row.
+              minimumSize: const Size(0, 44),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md + 4,
+              ),
+              textStyle: Theme.of(context).textTheme.labelMedium,
+            ),
+            child: const Text('SE CONNECTER'),
+          ),
+        ),
+        // Espacement plus grand ici : on change de "bloc".
+        const SizedBox(height: AppSpacing.lg),
+        // `scaleDown` : taille 64 si la place le permet, sinon le mot
+        // rétrécit d'un bloc au lieu de passer à la ligne.
+        const FittedBox(fit: BoxFit.scaleDown, child: CardexLogoText(size: 64)),
+        const SizedBox(height: AppSpacing.md),
+        const PixelLabel(
+          'Flashe-les toutes !',
+          color: AppColors.textPrimary,
+          size: 15,
+        ),
+        const SizedBox(height: AppSpacing.md),
+        Text(
+          'Prends en photo les voitures que tu croises. Chaque modèle '
+          'identifié rejoint ton CarDex.',
+          style: Theme.of(context).textTheme.bodyLarge
+              ?.copyWith(color: AppColors.textPrimary),
+        ),
+      ],
+    );
+  }
+}
+
+/// Bandeau de l'utilisateur connecté : avatar, salutation, progression.
+class _UserHeader extends StatelessWidget {
+  const _UserHeader({required this.user});
+
+  final User user;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _TopBar(trailing: _AvatarMenu(user: user)),
+        const SizedBox(height: AppSpacing.lg),
+        PixelLabel(
+          'Salut, ${user.pseudo} !',
+          color: AppColors.textPrimary,
+          size: 15,
+        ),
+        // Salut + titre forment un bloc : espacement serré.
+        const SizedBox(height: AppSpacing.sm),
+        const FittedBox(fit: BoxFit.scaleDown, child: CardexLogoText(size: 56)),
+        const SizedBox(height: AppSpacing.md),
+        const _ProgressCard(),
+      ],
+    );
+  }
+}
+
+/// Avatar rond avec l'initiale du pseudo. Un tap ouvre un petit menu
+/// (profil, déconnexion).
+class _AvatarMenu extends StatelessWidget {
+  const _AvatarMenu({required this.user});
+
+  final User user;
+
+  @override
+  Widget build(BuildContext context) {
+    final pseudo = user.pseudo.trim();
+    final initial = pseudo.isEmpty ? '?' : pseudo[0].toUpperCase();
+
+    // `PopupMenuButton` : chaque entrée porte une valeur (ici une fonction),
+    // renvoyée à `onSelected` quand on la choisit. On utilise le `context` de
+    // la page (pas celui du menu, qui disparaît à sa fermeture).
+    return PopupMenuButton<VoidCallback>(
+      tooltip: 'Mon compte',
+      onSelected: (action) => action(),
+      itemBuilder: (_) => [
+        PopupMenuItem(
+          value: () => context.push(Routes.profile),
+          child: const Text('Profil'),
+        ),
+        PopupMenuItem(
+          value: () => context.read<AuthCubit>().logout(),
+          child: const Text('Se déconnecter'),
+        ),
+      ],
+      child: Container(
+        width: 48,
+        height: 48,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: AppColors.ink,
+          shape: BoxShape.circle,
+          border: Border.all(color: AppColors.yellow, width: 2),
+        ),
+        child: Text(
+          initial,
+          style: Theme.of(context).textTheme.titleMedium
+              ?.copyWith(color: AppColors.yellow, fontWeight: FontWeight.w700),
+        ),
+      ),
+    );
+  }
+}
+
+/// Carte "128 / 248 capturées" + barre d'XP, dans le bandeau rouge.
+// TODO(toi) : remplacer les données en dur par la vraie progression.
+class _ProgressCard extends StatelessWidget {
+  const _ProgressCard();
+
+  @override
+  Widget build(BuildContext context) {
+    // `Container` plutôt que `Card` : pas de marge, d'ombre ni de couleur
+    // Material imposées, juste un fond arrondi.
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: AppColors.ink,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              // `Expanded` : le texte prend la place restante et pousse
+              // "OUVRIR" à droite.
+              Expanded(
+                // Un seul texte, plusieurs styles : chaque `TextSpan` hérite
+                // du style parent et ne redéfinit que ce qui change.
+                child: Text.rich(
+                  TextSpan(
+                    style: Theme.of(context).textTheme.labelMedium,
+                    children: const [
+                      TextSpan(
+                        text: '128',
+                        style: TextStyle(color: AppColors.yellow),
                       ),
-                      const SizedBox(height: AppSpacing.md),
-                      // TODO(toi) : remplacer par une liste de voitures capturées.
-                      const Center(
-                        child: PixelLabel(
-                          'Aucune voiture capturée pour l’instant.',
-                          color: AppColors.textMuted,
-                        ),
-                      ),
+                      TextSpan(text: ' / 248 CAPTURÉES'),
                     ],
                   ),
                 ),
               ),
-              // TODO(toi) : remplacer les données en dur par la vraie dernière
-              // capture.
-              Padding(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                // `Material` + `InkWell` : toute la carte est cliquable, avec
-                // l'ondulation Material qui suit l'arrondi (`borderRadius`).
-                child: Material(
-                  color: AppColors.lcd,
-                  borderRadius: BorderRadius.circular(AppRadius.lg),
-                  clipBehavior: Clip.antiAlias,
-                  child: InkWell(
-                    onTap: () {
-                      // TODO(toi) : ouvrir la fiche de la voiture.
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.all(AppSpacing.md),
-                      child: Row(
-                        children: [
-                          // Vignette : taille fixe, en attendant la vraie photo.
-                          Container(
-                            width: 64,
-                            height: 44,
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              color: AppColors.lcdInk,
-                              borderRadius: BorderRadius.circular(AppRadius.md),
-                            ),
-                            child: Text(
-                              'R34',
-                              style: Theme.of(context).textTheme.bodyMedium
-                                  ?.copyWith(color: AppColors.lcd),
-                            ),
-                          ),
-                          const SizedBox(width: AppSpacing.md),
-                          // `Expanded` : les textes prennent la place restante et
-                          // poussent le chevron contre le bord droit.
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              spacing: AppSpacing.xs,
-                              children: [
-                                const PixelLabel(
-                                  'Dernière capture · hier',
-                                  color: AppColors.lcdInkMuted,
-                                ),
-                                Text(
-                                  '#087 Skyline GT-R R34',
-                                  // Un nom trop long est coupé avec "…" au lieu
-                                  // de faire déborder la ligne.
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: Theme.of(context).textTheme.titleMedium
-                                      ?.copyWith(
-                                        color: AppColors.lcdInk,
-                                        fontSize: 20,
-                                      ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          // Simple indice visuel : c'est la carte entière qui
-                          // réagit au toucher.
-                          const Icon(
-                            Icons.chevron_right,
-                            color: AppColors.lcdInk,
-                            size: 28,
-                          ),
-                        ],
+              TextButton(
+                onPressed: () {},
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.textMuted,
+                  textStyle: Theme.of(context).textTheme.labelSmall,
+                  // Retire le padding et la taille minimale du TextButton,
+                  // pour qu'il s'aligne sur le bord droit de la carte.
+                  padding: EdgeInsets.zero,
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                child: const Text('OUVRIR ›'),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          LinearProgressIndicator(
+            value: 128 / 248,
+            minHeight: 8,
+            color: AppColors.yellow,
+            backgroundColor: AppColors.border,
+            borderRadius: BorderRadius.circular(AppRadius.pill),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            'Niv. 7 · Spotter — 640 / 1000 XP',
+            style: Theme.of(context).textTheme.bodyLarge
+                ?.copyWith(color: AppColors.textMuted),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Sous le bandeau, pour le visiteur : voiture mystère + menu.
+class _GuestBody extends StatelessWidget {
+  const _GuestBody({required this.onMenuEntry});
+
+  final ValueChanged<_HomeMenuEntry> onMenuEntry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const PixelLabel(
+          'Quelle est cette voiture ?',
+          color: AppColors.yellow,
+          size: 14,
+        ),
+        const SizedBox(height: AppSpacing.md),
+        // TODO(toi) : la voiture mystère du jour viendra de l'API.
+        Card(
+          // Le Card ajoute par défaut une marge et une ombre : on les retire
+          // pour qu'il s'aligne pile sur le reste de la page.
+          margin: EdgeInsets.zero,
+          elevation: 0,
+          color: AppColors.surface,
+          // `RoundedRectangleBorder` : coins arrondis ; `side` dessine le
+          // trait de la bordure (`Border.all` ferait des angles droits).
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+            side: const BorderSide(color: AppColors.border, width: 2),
+          ),
+          // Découpe l'image selon l'arrondi : sans ça, elle déborde
+          // par-dessus les coins.
+          clipBehavior: Clip.antiAlias,
+          // `AspectRatio` : la hauteur suit la largeur de l'écran ; `cover`
+          // remplit le cadre quitte à rogner les bords de la photo.
+          child: AspectRatio(
+            aspectRatio: 16 / 10,
+            child: Image.asset('assets/images/clio4.jpg', fit: BoxFit.cover),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        // `spaceBetween` : un texte collé à gauche, l'autre à droite.
+        const Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            PixelLabel('N° ???', color: AppColors.textMuted),
+            SizedBox(width: AppSpacing.md),
+            // `Flexible` : sur un écran étroit, ce texte passe à la ligne au
+            // lieu de déborder.
+            Flexible(
+              child: PixelLabel(
+                'Devine-la pour +50 XP',
+                color: AppColors.textMuted,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        _HomeMenu(
+          entries: const [
+            _HomeMenuEntry.newGame,
+            _HomeMenuEntry.resume,
+            _HomeMenuEntry.options,
+          ],
+          onActivated: onMenuEntry,
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        const Center(
+          child: PixelLabel('Appuie sur start', color: AppColors.textMuted),
+        ),
+      ],
+    );
+  }
+}
+
+/// Sous le bandeau, pour l'utilisateur connecté : défi du jour, dernière
+/// capture, menu.
+class _UserBody extends StatelessWidget {
+  const _UserBody({required this.onMenuEntry});
+
+  final ValueChanged<_HomeMenuEntry> onMenuEntry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const _DailyChallengeCard(),
+        const SizedBox(height: AppSpacing.md),
+        const _LastCaptureCard(),
+        const SizedBox(height: AppSpacing.lg),
+        _HomeMenu(
+          entries: const [
+            _HomeMenuEntry.capture,
+            _HomeMenuEntry.profile,
+            _HomeMenuEntry.options,
+          ],
+          onActivated: onMenuEntry,
+        ),
+      ],
+    );
+  }
+}
+
+/// Carte "Défi du jour" : vignette de la voiture mystère + textes.
+// TODO(toi) : remplacer les données en dur par le vrai défi du jour.
+class _DailyChallengeCard extends StatelessWidget {
+  const _DailyChallengeCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+
+    // `Material` + `InkWell` : toute la carte est cliquable, avec
+    // l'ondulation Material qui suit l'arrondi (`shape`).
+    return Material(
+      color: AppColors.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        side: const BorderSide(color: AppColors.border),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () {
+          // TODO(toi) : lancer le défi du jour.
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: Row(
+            children: [
+              // `ClipRRect` : arrondit l'image elle-même, sans Card autour.
+              ClipRRect(
+                borderRadius: BorderRadius.circular(AppRadius.md),
+                child: Image.asset(
+                  'assets/images/clio4.jpg',
+                  width: 112,
+                  height: 80,
+                  fit: BoxFit.cover,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: AppSpacing.xs,
+                  children: [
+                    const PixelLabel(
+                      'Défi du jour · +50 XP',
+                      color: AppColors.yellow,
+                    ),
+                    Text(
+                      'Quelle est cette voiture ?',
+                      style: textTheme.titleMedium?.copyWith(
+                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                child: _HomeMenu(
-                  entries: const [
-                    _HomeMenuEntry.capture,
-                    _HomeMenuEntry.profile,
-                    _HomeMenuEntry.options,
+                    Text(
+                      'Série en cours : 4 jours',
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: AppColors.textMuted,
+                      ),
+                    ),
                   ],
-                  onActivated: openEntry,
-                ),
-              ),
-            ] else ...[
-              PixelLabel("Quelle est cette voiture ?",color: AppColors.yellow,size: 14,),
-              Center(
-                child: Card(
-                  // `RoundedRectangleBorder` : coins arrondis ; `side` dessine
-                  // le trait de la bordure (`Border.all` ferait des angles droits).
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.lg),
-                    side: const BorderSide(color: AppColors.border, width: 2),
-                  ),
-                  // Découpe l'image selon l'arrondi : sans ça, elle déborde
-                  // par-dessus les coins.
-                  clipBehavior: Clip.antiAlias,
-                  child: Image.asset("assets/images/clio4.jpg"),
-                ),
-              ),
-              Row(spacing: AppSpacing.xl,
-                children: [
-                PixelLabel("N°001"),
-                PixelLabel("Devine-la pour +50LP")
-              ],),
-
-              Padding(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                child: _HomeMenu(
-                  entries: const [
-                    _HomeMenuEntry.newGame,
-                    _HomeMenuEntry.resume,
-                    _HomeMenuEntry.options,
-                  ],
-                  onActivated: openEntry,
                 ),
               ),
             ],
-          ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Carte "écran LCD" de la dernière voiture capturée.
+// TODO(toi) : remplacer les données en dur par la vraie dernière capture.
+class _LastCaptureCard extends StatelessWidget {
+  const _LastCaptureCard();
+
+  @override
+  Widget build(BuildContext context) {
+    // `Material` + `InkWell` : toute la carte est cliquable, avec
+    // l'ondulation Material qui suit l'arrondi (`borderRadius`).
+    return Material(
+      color: AppColors.lcd,
+      borderRadius: BorderRadius.circular(AppRadius.lg),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () {
+          // TODO(toi) : ouvrir la fiche de la voiture.
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: Row(
+            children: [
+              // Vignette : taille fixe, en attendant la vraie photo.
+              Container(
+                width: 64,
+                height: 44,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: AppColors.lcdInk,
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                ),
+                child: Text(
+                  'R34',
+                  style: Theme.of(context).textTheme.bodyMedium
+                      ?.copyWith(color: AppColors.lcd),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              // `Expanded` : les textes prennent la place restante et
+              // poussent le chevron contre le bord droit.
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: AppSpacing.xs,
+                  children: [
+                    const PixelLabel(
+                      'Dernière capture · hier',
+                      color: AppColors.lcdInkMuted,
+                    ),
+                    Text(
+                      '#087 Skyline GT-R R34',
+                      // Un nom trop long est coupé avec "…" au lieu de faire
+                      // déborder la ligne.
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.titleMedium
+                          ?.copyWith(color: AppColors.lcdInk, fontSize: 20),
+                    ),
+                  ],
+                ),
+              ),
+              // Simple indice visuel : c'est la carte entière qui réagit au
+              // toucher.
+              const Icon(
+                Icons.chevron_right,
+                color: AppColors.lcdInk,
+                size: 28,
+              ),
+            ],
+          ),
         ),
       ),
     );
