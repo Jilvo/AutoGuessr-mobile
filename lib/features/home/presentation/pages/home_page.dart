@@ -72,26 +72,7 @@ class _TopBar extends StatelessWidget {
       children: [
         // Partie décorative : elle prend la place restante et rétrécit si
         // l'écran est étroit ou la police agrandie.
-        Expanded(
-          child: Row(
-            children: [
-              const CardexLogo(size: 26),
-              // `Flexible` : le label accepte d'avoir moins de place que
-              // demandé ; `FittedBox` le réduit alors au lieu de déborder.
-              Flexible(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerLeft,
-                  child: PixelLabel(
-                    'Version rouge',
-                    color: AppColors.textPrimary,
-                    size: 13,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
+        Expanded(child: _VersionLabel()),
         const SizedBox(width: AppSpacing.md),
         // L'action garde toujours sa taille : elle doit rester lisible et
         // facile à toucher.
@@ -548,6 +529,15 @@ class _LastCaptureCard extends StatelessWidget {
   }
 }
 
+enum _VersionEntry {
+  red('Rouge'),
+  blue('Bleue'),
+  green('Verte');
+
+  const _VersionEntry(this.versionColor);
+  final String versionColor;
+}
+
 /// Les entrées du menu d'accueil. Chaque valeur porte ses propres textes :
 /// ajouter une entrée = ajouter une ligne ici.
 enum _HomeMenuEntry {
@@ -598,6 +588,46 @@ class _HomeMenu extends StatefulWidget {
 
   @override
   State<_HomeMenu> createState() => _HomeMenuState();
+}
+
+class _VersionLabel extends StatefulWidget {
+  const _VersionLabel();
+
+  @override
+  State<_VersionLabel> createState() => _VersionLabelState();
+}
+
+class _VersionLabelState extends State<_VersionLabel> {
+  _VersionEntry _version = _VersionEntry.red;
+  void _nextVersion() {
+    final nextIndex = (_version.index + 1) % _VersionEntry.values.length;
+    
+    setState(() => _version = _VersionEntry.values[nextIndex]);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+        onDoubleTap: _nextVersion,
+        child: Row(
+          children: [
+            const CardexLogo(size: 26),
+            // `Flexible` : le label accepte d'avoir moins de place que
+            // demandé ; `FittedBox` le réduit alors au lieu de déborder.
+
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: PixelLabel(
+                "Version ${_version.versionColor}",
+                color: AppColors.textPrimary,
+                size: 13,
+              ),
+            ),
+          ],
+        ),
+      );
+  }
 }
 
 class _HomeMenuState extends State<_HomeMenu> {
